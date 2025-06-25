@@ -1,5 +1,5 @@
 # Intrinsic motivations
-Repositories for intrinsic motivation implementations.
+Repositories for intrinsic motivation implementations for dynamical sustems. Mainly used for robotics and optimisation, but can be used in any feedback loop.
 
 ## C++
 ### Homeokinesis (Eigen)
