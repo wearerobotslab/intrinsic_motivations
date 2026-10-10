@@ -16,8 +16,14 @@
 // the motor values, then learns from the newest sensor values (x_fut) and the sensors and motors from
 // steps4Delay steps earlier. Learning starts once the buffer has been filled.
 
+// Eigen is usually found as <Eigen/...>, but some setups (e.g. ESP-IDF's eigen component) only provide <eigen3/Eigen/...>
+#if __has_include(<Eigen/Core>)
 #include <Eigen/Core>
 #include <Eigen/QR>
+#else
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/QR>
+#endif
 
 #include <algorithm>
 #include <cmath>
