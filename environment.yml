@@ -1,0 +1,16 @@
+# Conda environment for testing the homeokinesis implementations.
+#   conda env create -f environment.yml
+#   conda activate homeokinesis
+#   pytest tests
+# CPU-only PyTorch is enough for the tests; Isaac Lab is not needed.
+name: homeokinesis
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - pytest
+  - pytorch=*=cpu*      # torch port (CPU build)
+  - eigen               # C++ port (Eigen headers)
+  - cxx-compiler        # C++17 compiler for the C++ tests
+  - git                 # to clone lpzrobots
