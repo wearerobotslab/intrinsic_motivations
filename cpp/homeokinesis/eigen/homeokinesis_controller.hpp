@@ -58,6 +58,7 @@ public:
         x_buffer(ctrl.x_buffer),
         y_buffer(ctrl.y_buffer),
         _conf(ctrl._conf),
+        t(ctrl.t),
         causeaware(ctrl.causeaware),
         sense(ctrl.sense),
         creativity(ctrl.creativity),

@@ -36,12 +36,15 @@ void Homeokinesis::init(int nb_inputs, int nb_outputs){
 }
 
 std::vector<double> Homeokinesis::update(const std::vector<double> &sensorValues){
-    //step 1: learn
-    learn();
-    //step 2: step
     misc::stdvect_to_eigenmat(sensorValues,x);
     Matrix y;
-    step(x,y);
+    step(x,y); // stores x, computes y, t++
+    // learn as in Sox::step: after storing the new sensor value, once the buffer is full
+    if(t > static_cast<int>(_conf.buffersize)){
+        t--;
+        learn();
+        t++;
+    }
     std::vector<double> ctrl_cmd;
     misc::eigenvect_to_stdvect(y,ctrl_cmd);
     return ctrl_cmd;
@@ -122,7 +125,7 @@ void Homeokinesis::learn(){
         b += _matrix_map<double(double)>(xi * (epsb) + (b *  -damping), clip_01);
     }
     if(_conf.epsC > 0){
-      C += _matrix_map<double(double)>(((mu * v_hat.transpose()) - (y.asDiagonal() * epsrel) * x.transpose())   * (EE * _conf.epsC), clip_01);
+      C += _matrix_map<double(double)>(((mu * v_hat.transpose()) - (y.asDiagonal() * epsrel) * x.transpose())   * (EE * _conf.epsC), clip_005);
       if(damping)
         C += _matrix_map<double(double)>(_matrix_map<double(double)>(C_native-C,power3)*damping, clip_005);
       h += _matrix_map<double(double)>(((mu*harmony) - (y.asDiagonal() * epsrel)) * (EE * _conf.epsC * _conf.factorh),clip_005);
@@ -169,8 +172,8 @@ void Homeokinesis::add_noise(double e) {
     S += noise_S;
     Matrix noise_C = e * Eigen::MatrixXd::Random(_nbr_outputs, _nbr_inputs);
     C += noise_C;
-    Matrix noise_b = Eigen::MatrixXd::Random(_nbr_inputs,1);
+    Matrix noise_b = e * Eigen::MatrixXd::Random(_nbr_inputs,1);
     b += noise_b;
-    Matrix noise_h = Eigen::MatrixXd::Random(_nbr_outputs,1);
+    Matrix noise_h = e * Eigen::MatrixXd::Random(_nbr_outputs,1);
     h += noise_h;
 }

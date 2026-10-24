@@ -44,10 +44,8 @@ class Homeokinesis:
   def step(self, x):
       # adding noise to sensors
       noise = torch.normal(0, 0.05, size=(self.num_envs, self.num_inputs), device=self.device)
-      x += noise
+      x = x + noise  # not in place: don't modify the caller's observation
 
-      # learn
-      self.learn()
       # filling buffers
       steps_for_averaging: int = max(1, min(self.conf['steps_for_averaging'], self.conf['buffersize']))
       x = x.reshape(self.num_envs, self.num_inputs, 1)
@@ -64,6 +62,11 @@ class Homeokinesis:
 
       self.y_buffer[:, self.t % self.conf['buffersize']] = y
       self.t += 1
+      # learn (as Sox::step): after storing the new sensor value, once the buffer is full
+      if self.t > self.conf['buffersize']:
+        self.t -= 1
+        self.learn()
+        self.t += 1
       # print(y[0])
       return torch.squeeze(y)
   
@@ -108,7 +111,7 @@ class Homeokinesis:
     EE = 1.0
     #TODO add loga
     if self.conf['loga']:
-      EE = 0.1 / (torch.linalg.norm(v, ord=2, dim=1) + 0.001)
+      EE = 0.1 / (torch.linalg.norm(v, ord=2, dim=1) ** 2 + 0.001)  # E = log(v^T v)
       EE = EE.view(-1, 1, 1)
     x_t = torch.einsum('ijk->ikj', x)
 

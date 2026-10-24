@@ -21,7 +21,7 @@ class Homeokinesis:
 		self.gamma = 0.0
 		self.inter_is_teaching = False
 		self.A = np.eye(self.number_sensor, self.number_motor)
-		self.S = np.eye(self.number_sensor, self.number_motor) * 0.05
+		self.S = np.eye(self.number_sensor) * 0.05  # sensor -> sensor
 		self.C = np.eye(self.number_motor, self.number_sensor) * self.init_feedback_strength # + np.random.rand(self.number_motor, self.number_sensor) * 0.1
 		self.b = np.zeros((self.number_sensor))
 		self.h = np.zeros((self.number_motor))
@@ -70,7 +70,7 @@ class Homeokinesis:
 
 	def step(self, x_):
 		yy_ = self.step_no_learning(x_)
-		if (self.t <= self.buffer_size): return
+		if (self.t <= self.buffer_size): return yy_  # no learning until the buffer is full
 		self.t += -1  # step_no_learning increments t
 		if (self.eps_C != 0.0 or self.eps_A != 0.0):
 			self.learn()
@@ -104,33 +104,33 @@ class Homeokinesis:
 		z = self.C.dot(x) + self.h
 		y = np.copy(self.g(z))
 		g_prime = np.copy(self.g_s(z))
-		self.L = self.A.dot(self.C.dot(g_prime)) + self.S
+		self.L = self.A.dot(g_prime[:, None] * self.C) + self.S  # A G' C + S
 		R = self.A.dot(self.C) + self.S
 		eta = np.linalg.pinv(self.A).dot(xi)
 		y_hat = y + eta * self.causeaware
 		Lplus = np.linalg.pinv(self.L)
 		v = Lplus.dot(xi)
 		chi = np.transpose(Lplus).dot(v)
-		mu = (np.transpose(self.A) * (g_prime)).dot(chi)
+		mu = (g_prime[:, None] * self.A.T).dot(chi)  # G' A^T chi
 		mu2 = self.C.dot(v)
 		eps_rel = mu * mu2 * (self.sense * 2.0)
 		v_hat = v + x * self.harmony
 		self.v_avg += (v - self.v_avg) * 0.1
 		EE = 1.0
 		if (self.loga):
-			EE = 0.1 / (np.linalg.norm(v) + 0.001)
+			EE = 0.1 / (v.dot(v) + 0.001)  # E = log(v^T v)
 		if (self.eps_A > 0.0):
 			eps_S = self.eps_A * self.factor_S
 			eps_b = self.eps_A * self.factor_b
-			self.A += np.clip(xi * np.transpose(y_hat) * self.eps_A, -self.clip_limit, self.clip_limit)
+			self.A += np.clip(np.outer(xi, y_hat) * self.eps_A, -self.clip_limit, self.clip_limit)
 			if (self.damping > 0.0):
 				self.A += np.clip(((self.A_native - self.A) ** 3) * self.damping, -self.clip_limit, self.clip_limit)
 			if (self.use_extended_model):
-				self.S += np.clip(xi.dot(np.transpose(x)) * eps_S + (self.S.dot((-self.damping * 10))), -self.clip_limit, self.clip_limit)
+				self.S += np.clip(np.outer(xi, x) * eps_S + (self.S.dot((-self.damping * 10))), -self.clip_limit, self.clip_limit)
 			self.b += np.clip(xi * eps_b + (self.b * (-self.damping)), -self.clip_limit, self.clip_limit)
 		if (self.eps_C > 0.0):
-			self.C += np.clip((mu.dot(np.transpose(v_hat))
-			       -((eps_rel * y).dot(np.transpose(x)))) * (EE * self.eps_C), -self.clip_limit, self.clip_limit)
+			self.C += np.clip((np.outer(mu, v_hat)
+			       - np.outer(eps_rel * y, x)) * (EE * self.eps_C), -self.clip_limit, self.clip_limit)
 			if (self.damping > 0.0):
 				self.C += np.clip(((self.C_native - self.C) ** 3) * self.damping, -self.clip_limit, self.clip_limit)
 			self.h += np.clip((mu * self.harmony - (eps_rel * y)) * (EE * self.eps_C * self.factor_h) , -self.clip_limit, self.clip_limit)
