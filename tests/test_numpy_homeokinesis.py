@@ -1,4 +1,4 @@
-"""python/homeokinesis/numpy/homeokinesis.py against the SOX reference.
+"""homeokinesis/python/homeokinesis_numpy.py against the SOX reference.
 
 Every test runs the port and the reference with the port's own
 hyperparameters, so only the maths is compared, not the tuning.

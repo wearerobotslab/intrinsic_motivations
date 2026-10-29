@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 # local clone of lpzrobots used by tests/test_lpzrobots_baseline.py
 external/
+# pip / build output
+build/
+dist/
+*.egg-info/

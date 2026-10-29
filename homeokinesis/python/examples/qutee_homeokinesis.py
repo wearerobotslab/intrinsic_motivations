@@ -3,7 +3,7 @@ import py_dynamixel.io as io
 import time
 from robots.qutee_parameters import *
 from robots.qutee_utils import *
-from controllers.homeokinesis import Homeokinesis
+from homeokinesis import HomeokinesisNumpy as Homeokinesis
 from robots.qutee import Qutee
 
 control_time_step = 0.1  

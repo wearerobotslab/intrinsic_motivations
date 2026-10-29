@@ -1,20 +1,74 @@
 # Intrinsic motivations
-Repositories for intrinsic motivation implementations for dynamical sustems. Mainly used for robotics and optimisation, but can be used in any feedback loop.
+Repositories for intrinsic motivation implementations for dynamical systems. Mainly used for robotics and optimisation, but can be used in any feedback loop.
+
+## Repository layout
+One folder per intrinsic motivation in the repository root; inside it, one folder per language:
+```
+homeokinesis/                        Python package `homeokinesis` (__init__.py)
+  cpp/eigen/                         C++ (Eigen) version
+  python/
+    homeokinesis_numpy.py            numpy version
+    homeokinesis_torch.py            torch version
+    examples/                        example scripts (not part of the package)
+tests/                               tests for all versions
+```
 
 ## C++
 ### Homeokinesis (Eigen)
-/cpp/homeokinesis/eigen/homekinesis.cpp .hpp. 1-to-1 implementation of the SOX controller from The Playful Machine (Der and Martius, 2012). Depends on Eigen library. As used in AREFramework. 
+`homeokinesis/cpp/eigen/homeokinesis_controller.cpp` and `.hpp`. 1-to-1 implementation of the SOX controller from The Playful Machine (Der and Martius, 2012). Depends on the Eigen library. As used in AREFramework.
 
 ## Python
 ### Homeokinesis
 #### Torch version
-/python/homeokinesis/torch/homekinesis.py. 1-to-1 implementaition of SOX controller. Depends on Torch and wrapped for Gymnasium RL framework. Used for running multiple parallel robots in NVidia Isaac Sim.
+`homeokinesis/python/homeokinesis_torch.py`. 1-to-1 implementation of the SOX controller. Depends on Torch and is wrapped for the Gymnasium RL framework. Used for running multiple parallel robots in NVidia Isaac Sim.
 
-The play_hk.py file is an example of running the controller on Isaac Gym.
+`homeokinesis/python/examples/play_hk.py` is an example of running the controller on Isaac Gym.
 
 #### Numpy version
-/python/homeokinesis/numpy/homekinesis.py. 1-to-1 implementaition of SOX controller. Depends on Numpy. Used for running homeokinesis on the Qutee robot.
-The qutee_homeokinesis.py file is an example of running the controller on the Qutee robot.
+`homeokinesis/python/homeokinesis_numpy.py`. 1-to-1 implementation of the SOX controller. Depends on Numpy. Used for running homeokinesis on the Qutee robot.
+
+`homeokinesis/python/examples/qutee_homeokinesis.py` is an example of running the controller on the Qutee robot.
+
+## Installing the Python package with pip
+The Python code installs as the package `homeokinesis` (distribution name `intrinsic-motivations`):
+```python
+from homeokinesis import HomeokinesisNumpy   # numpy version
+from homeokinesis import HomeokinesisTorch   # torch version
+
+hk = HomeokinesisNumpy(number_sensor=8, number_motor=8)
+y = hk.step(x)   # sensor values in, motor values out
+```
+`HomeokinesisTorch` is only imported when you ask for it. Its module also imports `gymnasium` and Isaac Lab (`omni.isaac.lab`), so those must be installed to use it.
+
+### As a user
+Install straight from GitHub (needs only numpy):
+```
+pip install git+https://github.com/wearerobotslab/intrinsic_motivations.git
+```
+With the torch version's dependency as well:
+```
+pip install "intrinsic-motivations[torch] @ git+https://github.com/wearerobotslab/intrinsic_motivations.git"
+```
+From a local clone: `pip install .` (or `pip install ".[torch]"`) in the repository root.
+
+### As a developer
+Clone the repository and install it in editable mode, so your changes to the code are used without reinstalling:
+```
+git clone https://github.com/wearerobotslab/intrinsic_motivations.git
+cd intrinsic_motivations
+conda env create -f environment.yml     # numpy, pytest, CPU PyTorch, Eigen, C++ compiler (see below)
+conda activate homeokinesis
+pip install -e ".[dev]"                 # editable install + pytest and torch
+```
+Then run the tests as described in [Testing homeokinesis](#testing-homeokinesis). The tests load the implementations straight from the source files, so they always test your checkout.
+
+### Without installing
+Add the repository root to the Python path and use the same imports:
+```python
+import sys
+sys.path.insert(0, "path/to/intrinsic_motivations")
+from homeokinesis import HomeokinesisNumpy
+```
 
 ## Testing homeokinesis
 The `tests/` folder checks all three homeokinesis implementations (numpy, torch, C++/Eigen) against the original SOX controller of lpzrobots (Der & Martius), both its code and its numerical results. See [tests/README.md](tests/README.md) for what each test does.

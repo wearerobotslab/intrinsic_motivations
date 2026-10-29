@@ -28,9 +28,9 @@ implementation's own hyperparameters, so only the maths is compared, not the tun
 |---|---|
 | `test_reference.py` | the reference against the theory |
 | `test_lpzrobots_baseline.py` | the reference and all three ports against the original lpzrobots Sox |
-| `test_numpy_homeokinesis.py` | `python/homeokinesis/numpy` |
-| `test_torch_homeokinesis.py` | `python/homeokinesis/torch` (Isaac Lab imports are stubbed if missing; noise switched off for comparisons) |
-| `test_cpp_homeokinesis.py`   | `cpp/homeokinesis/eigen` |
+| `test_numpy_homeokinesis.py` | `homeokinesis/python/homeokinesis_numpy.py` |
+| `test_torch_homeokinesis.py` | `homeokinesis/python/homeokinesis_torch.py` (Isaac Lab imports are stubbed if missing; noise switched off for comparisons) |
+| `test_cpp_homeokinesis.py`   | `homeokinesis/cpp/eigen` |
 
 Most tests follow one pattern: give the implementation and the reference the
 same settings and the same input (one learning step from an identical random

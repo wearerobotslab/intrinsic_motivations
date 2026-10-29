@@ -1,7 +1,7 @@
 """Shared fixtures: load each homeokinesis implementation in isolation.
 
-Both Python ports live in files called homeokinesis.py, so they are loaded by
-path under distinct module names. The torch port imports Isaac Lab and
+The Python ports are loaded by path, straight from the source files, so the
+tests check this checkout even if another version is installed with pip. The torch port imports Isaac Lab and
 gymnasium at module level although it does not use them; those are stubbed
 when they are not installed so the controller can be tested on its own.
 """
@@ -29,7 +29,7 @@ def _load(name, path):
 
 @pytest.fixture(scope="session")
 def numpy_impl():
-    return _load("hk_numpy", ROOT / "python/homeokinesis/numpy/homeokinesis.py")
+    return _load("hk_numpy", ROOT / "homeokinesis/python/homeokinesis_numpy.py")
 
 
 def _stub_module(name, **attrs):
@@ -51,7 +51,7 @@ def torch_impl():
         for n in ("omni", "omni.isaac", "omni.isaac.lab"):
             _stub_module(n)
         _stub_module("omni.isaac.lab.envs", ManagerBasedRLEnv=object)
-    return _load("hk_torch", ROOT / "python/homeokinesis/torch/homeokinesis.py")
+    return _load("hk_torch", ROOT / "homeokinesis/python/homeokinesis_torch.py")
 
 
 def _find_eigen():
@@ -129,9 +129,9 @@ def cpp_driver(tmp_path_factory):
     cmd = [cxx, "-std=c++17", "-O1",
            "-I", str(eigen.parent),
            "-I", str(TESTS / "cpp" / "stubs"),
-           "-I", str(ROOT / "cpp/homeokinesis/eigen"),
+           "-I", str(ROOT / "homeokinesis/cpp/eigen"),
            str(TESTS / "cpp" / "driver.cpp"),
-           str(ROOT / "cpp/homeokinesis/eigen/homeokinesis_controller.cpp"),
+           str(ROOT / "homeokinesis/cpp/eigen/homeokinesis_controller.cpp"),
            "-o", str(out)]
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:

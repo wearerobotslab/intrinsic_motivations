@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intrinsic-motivations"
+version = "0.1.0"
+description = "Intrinsic motivation controllers for dynamical systems: homeokinesis (SOX)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "We are robots Lab" }]
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+torch = ["torch"]
+dev = ["pytest", "torch"]
+
+[project.urls]
+Repository = "https://github.com/wearerobotslab/intrinsic_motivations"
+
+# One folder per intrinsic motivation in the repository root, and each such
+# folder is a Python package: homeokinesis/ -> `import homeokinesis`, with the
+# Python code in homeokinesis/python/. Only the .py files are installed; the
+# C++ code (cpp/) and the example scripts (python/examples/) are not.
+[tool.setuptools]
+packages = ["homeokinesis", "homeokinesis.python"]

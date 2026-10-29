@@ -1,4 +1,4 @@
-"""python/homeokinesis/torch/homeokinesis.py against the SOX reference.
+"""homeokinesis/python/homeokinesis_torch.py against the SOX reference.
 
 The torch port runs a batch of independent controllers (num_envs); every
 env is checked against its own reference instance. Tests run in float64

@@ -1,4 +1,4 @@
-"""cpp/homeokinesis/eigen against the SOX reference.
+"""homeokinesis/cpp/eigen against the SOX reference.
 
 The controller is compiled with stub ARE headers (tests/cpp/stubs) and
 driven by tests/cpp/driver.cpp. Two run modes:
