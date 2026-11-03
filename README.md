@@ -5,7 +5,8 @@ Repositories for intrinsic motivation implementations for dynamical systems. Mai
 One folder per intrinsic motivation in the repository root; inside it, one folder per language:
 ```
 homeokinesis/                        Python package `homeokinesis` (__init__.py)
-  cpp/eigen/                         C++ (Eigen) version
+  cpp/eigen/                         C++ (Eigen) version, as used in AREFramework
+  cpp/portable/                      C++ header-only version (Eigen only, float or double), for microcontrollers
   python/
     homeokinesis_numpy.py            numpy version
     homeokinesis_torch.py            torch version
@@ -16,6 +17,20 @@ tests/                               tests for all versions
 ## C++
 ### Homeokinesis (Eigen)
 `homeokinesis/cpp/eigen/homeokinesis_controller.cpp` and `.hpp`. 1-to-1 implementation of the SOX controller from The Playful Machine (Der and Martius, 2012). Depends on the Eigen library. As used in AREFramework.
+
+### Homeokinesis (portable: Eigen only, float or double)
+`homeokinesis/cpp/portable/homeokinesis.hpp`. Header-only version of the same SOX controller for embedded use (used on the Qutee's ESP32-S3): no AREFramework dependency, fixed-size matrices (no memory allocation while running), and float or double.
+
+```cpp
+#include "homeokinesis.hpp"
+im::hk::Homeokinesis<float, 12, 12> hk;   // 12 sensors, 12 motors
+hk.params().epsA = 0.1f;                  // all parameters are in hk.params()
+auto y = hk.step(x);                      // act on the sensor values x, then learn
+```
+
+- Same equations, order of operations and clip limits as the original Sox, with the same defaults as the Eigen version.
+- Tested against the SOX reference by `tests/test_portable_homeokinesis.py`: equal in double, within 1e-3 in float.
+- `example.cpp` runs it on a simple simulated system and times a step: `g++ -std=c++17 -O2 -isystem /usr/include/eigen3 example.cpp -o example && ./example`
 
 ## Python
 ### Homeokinesis
@@ -71,7 +86,7 @@ from homeokinesis import HomeokinesisNumpy
 ```
 
 ## Testing homeokinesis
-The `tests/` folder checks all three homeokinesis implementations (numpy, torch, C++/Eigen) against the original SOX controller of lpzrobots (Der & Martius), both its code and its numerical results. See [tests/README.md](tests/README.md) for what each test does.
+The `tests/` folder checks all four homeokinesis implementations (numpy, torch, C++ Eigen and C++ portable) against the original SOX controller of lpzrobots (Der & Martius), both its code and its numerical results. See [tests/README.md](tests/README.md) for what each test does.
 
 ### 1. Create the conda environment
 `environment.yml` installs everything the tests need: Python, numpy, pytest, CPU-only PyTorch, Eigen and a C++ compiler. Isaac Lab and the robots are not needed.
@@ -98,6 +113,6 @@ pytest tests -v           # list every test by name
 pytest tests -k numpy     # only tests whose name contains "numpy" (or torch, cpp, lpzrobots)
 pytest tests -x           # stop at the first failure
 ```
-Expected result with lpzrobots present: all tests pass (`72 passed`). A failure prints which matrix or motor output differs from SOX, at which step and by how much.
+Expected result with lpzrobots present: all tests pass (`85 passed`). A failure prints which matrix or motor output differs from SOX, at which step and by how much.
 
 If Eigen is not found automatically, set `EIGEN_INCLUDE_DIR` to the folder that contains `Eigen/Core` (e.g. `$CONDA_PREFIX/include/eigen3`).

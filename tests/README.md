@@ -31,6 +31,7 @@ implementation's own hyperparameters, so only the maths is compared, not the tun
 | `test_numpy_homeokinesis.py` | `homeokinesis/python/homeokinesis_numpy.py` |
 | `test_torch_homeokinesis.py` | `homeokinesis/python/homeokinesis_torch.py` (Isaac Lab imports are stubbed if missing; noise switched off for comparisons) |
 | `test_cpp_homeokinesis.py`   | `homeokinesis/cpp/eigen` |
+| `test_portable_homeokinesis.py` | `homeokinesis/cpp/portable`: equal to the reference in double, within 1e-3 in float |
 
 Most tests follow one pattern: give the implementation and the reference the
 same settings and the same input (one learning step from an identical random
@@ -40,6 +41,7 @@ state, or the same sensor stream for 60-300 steps), then compare with
 ## Helper files
 * `conftest.py` - pytest fixtures: loads the Python ports, compiles the C++ port and lpzrobots Sox.
 * `cpp/driver.cpp` - wraps the Eigen controller; Python sends it settings and sensor values on stdin and reads the results back.
+* `cpp/portable_driver.cpp` - the same for the header-only portable controller (sizes 3x3 and 4x2, double or float).
 * `cpp/lpz_sox_driver.cpp` - the same for the original lpzrobots Sox.
 * `cpp/stubs/` - minimal stand-ins for the AREFramework headers the Eigen controller includes.
 

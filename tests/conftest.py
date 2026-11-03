@@ -137,3 +137,24 @@ def cpp_driver(tmp_path_factory):
     if res.returncode != 0:
         pytest.fail("C++ build failed:\n" + " ".join(cmd) + "\n" + res.stderr)
     return out
+
+
+@pytest.fixture(scope="session")
+def portable_driver(tmp_path_factory):
+    """Compile tests/cpp/portable_driver.cpp against the header-only portable controller."""
+    cxx = os.environ.get("CXX") or shutil.which("g++") or shutil.which("clang++")
+    if not cxx:
+        pytest.skip("no C++ compiler found")
+    eigen = _find_eigen()
+    if eigen is None:
+        pytest.skip("Eigen headers not found (set EIGEN_INCLUDE_DIR)")
+    out = tmp_path_factory.mktemp("portable") / "hk_portable_driver"
+    cmd = [cxx, "-std=c++17", "-O1",
+           "-isystem", str(eigen),
+           "-I", str(ROOT / "homeokinesis/cpp/portable"),
+           str(TESTS / "cpp" / "portable_driver.cpp"),
+           "-o", str(out)]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        pytest.fail("C++ build failed:\n" + " ".join(cmd) + "\n" + res.stderr)
+    return out
