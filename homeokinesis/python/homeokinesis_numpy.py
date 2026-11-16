@@ -43,6 +43,11 @@ class Homeokinesis:
 		self.factor_h = 1.0
 		self.clip_limit = 0.005
 
+		# Inspection, like Inspectable in lpzrobots: when True, learn() keeps its
+		# intermediate values in self.internals (see learn()). Off by default, so
+		# it costs no time or memory unless asked for.
+		self.inspect = False
+		self.internals = {}
 
 	def get_A(self):
 		return self.A
@@ -105,7 +110,7 @@ class Homeokinesis:
 		y = np.copy(self.g(z))
 		g_prime = np.copy(self.g_s(z))
 		self.L = self.A.dot(g_prime[:, None] * self.C) + self.S  # A G' C + S
-		R = self.A.dot(self.C) + self.S
+		self.R = self.A.dot(self.C) + self.S  # only used for inspection, as in Sox
 		eta = np.linalg.pinv(self.A).dot(xi)
 		y_hat = y + eta * self.causeaware
 		Lplus = np.linalg.pinv(self.L)
@@ -119,6 +124,13 @@ class Homeokinesis:
 		EE = 1.0
 		if (self.loga):
 			EE = 0.1 / (v.dot(v) + 0.001)  # E = log(v^T v)
+		if (self.inspect):
+			# The values this learning step used, before the updates below. t is the
+			# step of x_fut; after step() returns, it is self.t - 1. The arrays are
+			# fresh each step, so they are kept without copying.
+			self.internals = dict(t=self.t, x=x, y_creat=y_creat, x_fut=x_fut, xi=xi, z=z, y=y,
+			                      g_prime=g_prime, eta=eta, y_hat=y_hat, Lplus=Lplus, v=v, chi=chi,
+			                      mu=mu, mu2=mu2, eps_rel=eps_rel, v_hat=v_hat, EE=EE)
 		if (self.eps_A > 0.0):
 			eps_S = self.eps_A * self.factor_S
 			eps_b = self.eps_A * self.factor_b

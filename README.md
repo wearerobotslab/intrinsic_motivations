@@ -44,6 +44,14 @@ auto y = hk.step(x);                      // act on the sensor values x, then le
 
 `homeokinesis/python/examples/qutee_homeokinesis.py` is an example of running the controller on the Qutee robot.
 
+**Inspecting the internal values** (like `Inspectable` in lpzrobots). The state (`A`, `S`, `C`, `b`, `h`, `L`, `R`, `v_avg`, `x`, `x_smooth`, `y_buffer`) is always available as attributes. The values computed inside `learn()` are kept only when asked for:
+```python
+hk.inspect = True        # off by default: no extra time or memory
+y = hk.step(x)
+hk.internals             # dict from the last learning step: xi, v, Lplus, mu, eps_rel, ...
+```
+`internals` holds the values that step's updates used, with the names they have in `learn()`, and `t`, the step it ran at (`hk.t - 1` right after `step()`). It is not cleared on steps without learning, so check `t` before using it.
+
 ## Installing the Python package with pip
 The Python code installs as the package `homeokinesis` (distribution name `intrinsic-motivations`):
 ```python

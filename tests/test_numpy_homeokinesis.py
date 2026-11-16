@@ -102,3 +102,25 @@ def test_trajectory_matches_sox(numpy_impl, ns, nm):
         if k > hk.buffer_size:
             np.testing.assert_allclose(y, y_ref, atol=1e-7, err_msg=f"step {k}")
     assert_same_params(hk, ref)
+
+
+def test_inspect_keeps_internals_without_changing_learning(numpy_impl):
+    """inspect=True keeps learn()'s values in internals; learning is unchanged."""
+    settings = dict(eps_A=0.1, eps_C=0.1, clip_limit=0.1, harmony=0.05)
+    hk_off, _ = make(numpy_impl, 4, 3, **settings)
+    hk_on, _ = make(numpy_impl, 4, 3, inspect=True, **settings)
+    rng = np.random.default_rng(12)
+    for k in range(60):
+        x = np.sin(0.3 * k + np.arange(4)) * 0.8 + 0.05 * rng.standard_normal(4)
+        np.testing.assert_array_equal(hk_on.step(x), hk_off.step(x))
+    for name in ("A", "S", "b", "C", "h", "v_avg", "L", "R"):
+        np.testing.assert_array_equal(getattr(hk_on, name), getattr(hk_off, name), err_msg=name)
+    assert hk_off.internals == {}, "inspect off must keep nothing"
+    i = hk_on.internals
+    assert i["t"] == hk_on.t - 1, "internals are from the last step"
+    np.testing.assert_allclose(i["y"], np.tanh(i["z"]), atol=ATOL)
+    np.testing.assert_allclose(i["g_prime"], 1 - i["y"] ** 2, atol=ATOL)
+    np.testing.assert_allclose(i["v"], i["Lplus"] @ i["xi"], atol=ATOL)
+    np.testing.assert_allclose(i["chi"], i["Lplus"].T @ i["v"], atol=ATOL)
+    np.testing.assert_allclose(i["eps_rel"], 2 * hk_on.sense * i["mu"] * i["mu2"], atol=ATOL)
+    np.testing.assert_allclose(i["v_hat"], i["v"] + hk_on.harmony * i["x"], atol=ATOL)
